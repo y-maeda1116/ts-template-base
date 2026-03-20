@@ -31,25 +31,27 @@ ts-template-base/
 ├── package.json
 ├── tsconfig.json
 ├── tsup.config.ts            # Build configuration
-├── .eslintrc.cjs             # ESLint configuration
+├── eslint.config.js           # ESLint configuration (flat config)
 ├── .prettierrc               # Prettier configuration
-└── vitest.config.ts          # Vitest configuration
+├── vitest.config.ts          # Vitest configuration
+├── package-lock.json         # Lock file (committed for consistency)
+└── README.md                 # Setup and usage instructions
 ```
 
 ## Technology Stack
 
 | Category | Tool | Version |
 |----------|------|---------|
-| Runtime | Node.js | 20.x |
+| Runtime | Node.js | >=20.0.0 |
 | Package Manager | npm | - |
-| Build Tool | tsup | ^8.3.5 |
-| Dev Runtime | tsx | ^4.19.2 |
-| TypeScript | typescript | ^5.7.3 |
-| Linting | eslint | ^9.20.1 |
-| Formatting | prettier | ^3.4.2 |
-| Testing | vitest | ^2.1.8 |
-| Validation | zod | ^3.24.1 |
-| Config | dotenv | ^16.4.5 |
+| Build Tool | tsup | latest (8.x) |
+| Dev Runtime | tsx | latest (4.x) |
+| TypeScript | typescript | latest (5.x) |
+| Linting | eslint | latest (10.x, flat config) |
+| Formatting | prettier | latest (3.x) |
+| Testing | vitest | latest (4.x) |
+| Validation | zod | latest (4.x) |
+| Config | dotenv | latest (17.x) |
 
 ## package.json Scripts
 
@@ -62,6 +64,22 @@ ts-template-base/
 | `test:watch` | `vitest` | Watch mode testing |
 | `lint` | `eslint src/**` | Lint source code |
 | `format` | `prettier --write src/**` | Format source code |
+
+### package.json Required Fields
+
+```json
+{
+  "name": "ts-template-base",
+  "version": "0.0.1",
+  "description": "TypeScript template repository for Node.js tool development",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": ["typescript", "template", "nodejs"],
+  "license": "MIT"
+}
+```
 
 ## Implementation Details
 
@@ -86,19 +104,32 @@ ts-template-base/
 ### Signal Handling (src/index.ts)
 
 The entry point includes graceful shutdown handling:
-- Listens for `SIGINT` (Ctrl+C)
-- Listens for `SIGTERM` (kill command)
+- Listens for `SIGINT` (Ctrl+C) - works on both Windows and Unix
+- Listens for `SIGTERM` (kill command) - Unix only
 - Logs shutdown message before exit
+
+Example implementation:
+```typescript
+const shutdown = (signal: string) => {
+  console.log(`Received ${signal}, shutting down gracefully...`);
+  process.exit(0);
+};
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+```
 
 ### Environment Variable Validation (src/config/index.ts)
 
-Uses Zod schema for robust validation:
+Uses Zod schema for robust validation. The following environment variables are **placeholder examples** that should be customized for your project:
+
 ```typescript
 const envSchema = z.object({
-  DISCORD_TOKEN: z.string().min(1),
-  DEEPL_AUTH_KEY: z.string().min(1),
+  DISCORD_TOKEN: z.string().min(1),  // Example: Discord bot token
+  DEEPL_AUTH_KEY: z.string().min(1),  // Example: DeepL API key
 });
 ```
+
+Note: Replace `DISCORD_TOKEN` and `DEEPL_AUTH_KEY` with your actual required environment variables.
 
 ### Sample Test (src/index.test.ts)
 
@@ -106,34 +137,137 @@ Simple Vitest test demonstrating framework setup:
 - Test `Math` addition functionality
 - Target pattern: `src/**/*.test.ts`
 
+Example:
+```typescript
+import { describe, it, expect } from 'vitest';
+
+describe('Math', () => {
+  it('adds two numbers', () => {
+    expect(1 + 1).toBe(2);
+  });
+});
+```
+
+### tsup Configuration (tsup.config.ts)
+
+```typescript
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['cjs', 'esm'],
+  clean: true,
+  dts: true,  // Generate .d.ts type definition files
+  sourcemap: true,
+});
+```
+
+### ESLint Configuration (eslint.config.js)
+
+Uses ESLint 10.x flat config format:
+
+```javascript
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default [
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    ignores: ['dist/', 'node_modules/'],
+  },
+];
+```
+
+### Prettier Configuration (.prettierrc)
+
+```json
+{
+  "semi": true,
+  "singleQuote": false,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100
+}
+```
+
+### Vitest Configuration (vitest.config.ts)
+
+```typescript
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    include: ['src/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.test.ts', 'node_modules/'],
+    },
+  },
+});
+```
+
 ## CI/CD Pipeline
 
-The GitHub Actions workflow:
+The GitHub Actions workflow runs all platforms in parallel using a matrix strategy:
 
-1. **Test Job**
-   - Runs on: Ubuntu, Windows, macOS
-   - Node.js version: 20.x
-   - Steps: checkout, setup node, npm ci, npm run test, npm run lint
+```yaml
+name: CI
 
-2. **Build Job**
-   - Runs on: Ubuntu (after test passes)
-   - Steps: checkout, setup node, npm ci, npm run build
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [20.x]
+      fail-fast: false  # Continue other matrix jobs if one fails
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run test
+      - run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - run: npm ci
+      - run: npm run build
+```
+
+Platform-specific failures are reported individually, and all platforms must pass for the build to succeed.
 
 ## Cross-Platform Considerations
 
-- Line endings: Git handles LF/CRLF conversion automatically
-- Path separators: Use `path.join()` for file paths
-- Signal handling: Both SIGINT and SIGTERM for Unix, Ctrl+C for Windows
-- Build output: CommonJS and ESM formats for compatibility
+- **Line endings**: Git handles LF/CRLF conversion automatically via `.gitattributes`
+- **Path separators**: Use `path.join()` for file paths (works on both Windows and Unix)
+- **Signal handling**: SIGINT works on both platforms (Ctrl+C on Windows), SIGTERM is Unix-only
+- **Build output**: CommonJS and ESM formats for compatibility
+- **Lock files**: `package-lock.json` is committed for consistency across environments
 
 ## Success Criteria
 
 - [ ] Project structure matches specification
-- [ ] All npm scripts work correctly
+- [ ] package.json contains all required fields (name, version, description, type, engines, keywords, license)
+- [ ] package-lock.json is committed to repository
+- [ ] All npm scripts work correctly (dev, build, start, test, test:watch, lint, format)
+- [ ] npm install completes successfully on all platforms
 - [ ] TypeScript compilation passes with strict mode
-- [ ] ESLint and Prettier configured and working
+- [ ] ESLint (flat config) and Prettier configured and working
 - [ ] Vitest runs sample test successfully
-- [ ] tsup builds both CJS and ESM formats
-- [ ] CI workflow passes on all platforms
-- [ ] Environment variable validation works
-- [ ] Signal handling works gracefully
+- [ ] tsup builds both CJS and ESM formats with type definitions
+- [ ] CI workflow passes on all platforms (Ubuntu, Windows, macOS)
+- [ ] Environment variable validation works with custom schema
+- [ ] Signal handling works gracefully on all platforms
+- [ ] README.md includes setup and usage instructions
