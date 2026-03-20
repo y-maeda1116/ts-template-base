@@ -52,7 +52,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --clean --format cjs,esm",
+    "build": "tsup --clean",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -62,6 +62,7 @@
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@types/node": "^22.12.7",
+    "@vitest/coverage-v8": "^1.9.0",
     "eslint": "^10.1.0",
     "prettier": "^3.8.1",
     "tsup": "^8.5.1",
