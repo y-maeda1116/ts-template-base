@@ -27,7 +27,9 @@ ts-template-base/
 ├── .github/workflows/
 │   └── ci.yml                # CI workflow (test + build)
 ├── .env.example              # Environment variable examples
+├── .gitattributes            # Git line ending configuration
 ├── .gitignore                # Exclusions for Node, Windows, Mac
+├── .npmrc                    # npm configuration (engine-strict)
 ├── package.json
 ├── tsconfig.json
 ├── tsup.config.ts            # Build configuration
@@ -256,6 +258,26 @@ Platform-specific failures are reported individually, and all platforms must pas
 - **Build output**: CommonJS and ESM formats for compatibility
 - **Lock files**: `package-lock.json` is committed for consistency across environments
 
+### .gitattributes
+
+The `.gitattributes` file ensures consistent line endings across platforms, preventing linter errors due to CRLF/LF differences:
+
+```plaintext
+* text=auto eol=lf
+```
+
+This forces all text files to use LF line endings in the Git repository, regardless of the user's OS.
+
+### .npmrc
+
+The `.npmrc` file enforces Node.js version requirements to prevent running on incompatible environments:
+
+```plaintext
+engine-strict=true
+```
+
+Combined with `package.json`'s `engines` field (`"node": ">=20.0.0"`), this prevents installation on unsupported Node.js versions.
+
 ## Success Criteria
 
 - [ ] Project structure matches specification
@@ -271,3 +293,5 @@ Platform-specific failures are reported individually, and all platforms must pas
 - [ ] Environment variable validation works with custom schema
 - [ ] Signal handling works gracefully on all platforms
 - [ ] README.md includes setup and usage instructions
+- [ ] .gitattributes enforces LF line endings
+- [ ] .npmrc enforces engine-strict for Node.js version requirements
