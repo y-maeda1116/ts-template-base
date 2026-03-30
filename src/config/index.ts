@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import dotenv from 'dotenv';
+import { z } from "zod";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -8,4 +8,13 @@ const envSchema = z.object({
   DEEPL_AUTH_KEY: z.string().min(1),
 });
 
-export const config = envSchema.parse(process.env);
+const result = envSchema.safeParse(process.env);
+
+if (!result.success) {
+  const missing = result.error.issues
+    .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)
+    .join("\n");
+  throw new Error(`Invalid environment variables:\n${missing}`);
+}
+
+export const config = result.data;
