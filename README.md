@@ -4,7 +4,7 @@ A cross-platform TypeScript template repository optimized for Node.js tool devel
 
 ## Features
 
-- TypeScript with strict mode
+- TypeScript 7 (Go-based, ~10x faster) with strict mode
 - Hot-reload development with `tsx`
 - Dual CJS/ESM build with `tsup`
 - Testing with Vitest
@@ -60,6 +60,14 @@ Run tests in watch mode:
 
 ```bash
 npm run test:watch
+```
+
+## Type Checking
+
+Run type checking with `tsgo`:
+
+```bash
+npm run typecheck
 ```
 
 ## Build
