@@ -28,3 +28,6 @@ desktop.ini
 
 # Coverage
 coverage/
+
+# Vitest (attachments / reports)
+.vitest/
