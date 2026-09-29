@@ -27,7 +27,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.12.7",
-    "@typescript/native-preview": "^7.0.0-beta",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
     "@vitest/coverage-v8": "^5.0.0",
     "eslint": "^10.1.0",
     "eslint-plugin-security": "^4.0.1",
