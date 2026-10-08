@@ -64,11 +64,16 @@ npm run test:watch
 
 ## Type Checking
 
-Run type checking with `tsgo`:
+Run type checking with the native TypeScript 7 `tsc`:
 
 ```bash
 npm run typecheck
 ```
+
+> **Note:** TypeScript 7 does not yet ship the JavaScript compiler API that `typescript-eslint` (and `tsup`) depend on.
+> Following the [upstream side-by-side guidance](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6-0),
+> `@typescript/native` is an alias for `typescript@7` (provides `tsc`), while `typescript` is an alias for
+> `@typescript/typescript6` so tools importing the `typescript` API get the supported 6.x API.
 
 ## Build
 
