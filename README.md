@@ -15,7 +15,7 @@ A cross-platform TypeScript template repository optimized for Node.js tool devel
 
 ## Requirements
 
-- Node.js >= 20.0.0
+- Node.js >= 22.22.1
 - npm
 
 ## Setup
